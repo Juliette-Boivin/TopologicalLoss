@@ -7,9 +7,9 @@ import os
 import imageio
 
 
-def experiment(graph, img, nb_iter, loss='minmax', nb_holes=2, nb_cc=2, thresh_min=1e10-5, thresh_max=1e10-5, perf_dgm=False, img_grph_GT=False, optimize_maxtree=False,
+def experiment(graph, img, nb_iter, loss='minmax', nb_holes=2, nb_cc=4, thresh_min=1e10-5, thresh_max=1e10-5, perf_dgm='None', img_grph_GT='None', optimize_maxtree=False,
                color_min='blue', color_max='red', dataloss = False, plot_loss=True, result=True, diag_beg=True, 
-               diag_end=True, nb_leaves=True, save_fig=False, save_diagrams=False, save_results=False, make_GIF=False):
+               diag_end=True, nb_leaves=True, save_fig=False, save_diagrams=False, save_results=False):
   """
   Experiments with loss_Hu
 
@@ -121,19 +121,19 @@ def experiment(graph, img, nb_iter, loss='minmax', nb_holes=2, nb_cc=2, thresh_m
       if not os.path.exists(gif_dgm):
           os.makedirs(gif_dgm)
       for epoch in range(0, nb_iter, 10):
-        opt.show_dgm_for_gif(epoch, filenames, gif_dgm, color='red', i=nb_cc)
+        opt.show_dgm_for_gif(epoch, filenames, gif_dgm, perf_dgm=perf_dgm, img_grph_GT=img_grph_GT, color='red', i=nb_cc)
     elif loss == 'min':
       gif_dgm = input('Enter path to store diagram slices: ') + '/' + str(loss) + '/' + str(nb_holes)
       if not os.path.exists(gif_dgm):
           os.makedirs(gif_dgm)
       for epoch in range(0, nb_iter, 10):
-        opt.show_dgm_for_gif(epoch, filenames, gif_dgm, color='red', i=nb_holes)
+        opt.show_dgm_for_gif(epoch, filenames, gif_dgm, perf_dgm=perf_dgm, img_grph_GT=img_grph_GT, color='red', i=nb_holes)
     else:
       gif_dgm = input('Enter path to store diagram slices: ') + '/' + str(loss) + '/' + str(nb_cc) + '-' + str(nb_holes)
       if not os.path.exists(gif_dgm):
           os.makedirs(gif_dgm)
       for epoch in range(0, nb_iter, 10):
-        opt.show_dgm_for_gif(epoch, filenames, gif_dgm, color='black', color2='red', i=nb_cc, j=nb_holes)
+        opt.show_dgm_for_gif(epoch, filenames, gif_dgm, perf_dgm=perf_dgm, img_grph_GT=img_grph_GT, color='black', color2='red', i=nb_cc, j=nb_holes)
     
     with imageio.get_writer(gif_dgm + '/gif.gif', mode='I', duration=0.4) as writer:
       for filename in filenames:
