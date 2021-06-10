@@ -4,6 +4,7 @@ import higra as hg
 import torch as tc
 import math
 from Attribute import attribute_depth, attribute_saddle_nodes
+from edist import ted
 from Diagrams import NbMaximas2PersDiag
 from geomloss import SamplesLoss
 #from edist import ted
@@ -78,9 +79,10 @@ def tree2diag(tree, altitudes):
 
 
 
-def loss_Hu(graph, image, thresh, num_max, type, perfect_diagram=False, image_graph_GT=False, optimize_maxtree=False):
+def loss_Hu(graph, image, thresh, num_max, type, perfect_diagram='None', image_graph_GT='None', optimize_maxtree=False):
 
   tree, altitudes = img2tree(graph, image, thresh, type)
+  #hg.print_partition_tree(tree)
   
   if optimize_maxtree:
     tree_nodes = [nd for nd in tree.root_to_leaves_iterator()]
@@ -99,17 +101,18 @@ def loss_Hu(graph, image, thresh, num_max, type, perfect_diagram=False, image_gr
     
 
   # gt_pers: get persistence list from the target diagram
-  elif image_graph_GT != False:
+  elif image_graph_GT != 'None':
 
     birth, death = tree2diag(tree, altitudes)
     lh_pers = birth - death
 
     (graph_GT, image_GT) = image_graph_GT
-    birth_GT, death_GT = tree2diag(graph_GT, tc.tensor(image_GT), thresh, type)
+    tree_GT, altitudes_GT = img2tree(image_graph_GT[0], image_graph_GT[1], thresh, type)
+    birth_GT, death_GT = tree2diag(tree_GT, altitudes_GT)
     diagram_GT = tc.stack((birth_GT, death_GT), 1)
     gt_pers = diagram_GT[:, 1] - diagram_GT[:, 0]
 
-  elif perfect_diagram != False:
+  elif perfect_diagram != 'None':
     birth, death = tree2diag(tree, altitudes)
     lh_pers = birth - death
 
@@ -118,6 +121,7 @@ def loss_Hu(graph, image, thresh, num_max, type, perfect_diagram=False, image_gr
   else:
     birth, death = tree2diag(tree, altitudes)
     lh_pers = birth - death
+    
     gt_pers = NbMaximas2PersDiag(num_max, 0, 1)[:, 1] - NbMaximas2PersDiag(num_max, 0, 1)[:, 0]
   
 
@@ -142,7 +146,7 @@ def loss_Hu(graph, image, thresh, num_max, type, perfect_diagram=False, image_gr
   idx_valid = np.where(lh_pers > pers_thd)[0]
   idx_holes_to_remove = list(set(idx_holes_to_remove).intersection(set(idx_valid)))
 
-  if (perfect_diagram == False) and (image_graph_GT == False):
+  if (perfect_diagram == 'None') and (image_graph_GT == 'None'):
     force_list = tc.zeros((lh_pers.shape[0], 2))
     # push each hole-to-fix to (0,1)
     for ind in idx_holes_to_fix:
@@ -164,7 +168,7 @@ def loss_Hu(graph, image, thresh, num_max, type, perfect_diagram=False, image_gr
     dgm = tc.stack((birth[idx_holes_to_fix_or_perfect], death[idx_holes_to_fix_or_perfect]), 1) 
     L = SamplesLoss(loss='sinkhorn', p=2, blur=0.02)
 
-    if image_graph_GT != False:
+    if image_graph_GT != 'None':
       loss = L(dgm, diagram_GT)
     else:
       loss = L(dgm, perfect_diagram)
