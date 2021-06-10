@@ -107,6 +107,8 @@ def experiment(graph, img, nb_iter, loss='minmax', nb_holes=2, nb_cc=4, thresh_m
       Nb_leaves.append(len(opt.b[i]))
     plt.plot(Nb_leaves)
     plt.title('number of leaves')
+    
+  plt.show()
 
   if save_fig:
     # save the figure in the path filled out
