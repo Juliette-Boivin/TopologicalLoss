@@ -86,8 +86,10 @@ for i, (k, im) in enumerate(testimage.items()):
 
 #CHASEDB1 images and ground truth segmentation
 
-chase_images_name = input("path of the train data: ")
-chase_1stHO_name = input("path of the GT data: ")
+#chase_images_name = input("path of the train data: ")
+chase_images_name = '/home/jboivin/Documents/CHASEDB1/Images'
+#chase_1stHO_name = input("path of the GT data: ")
+chase_1stHO_name = '/home/jboivin/Documents/CHASEDB1/1stHO'
 
 testimage["chase_images"] = {}
 chase_images = []

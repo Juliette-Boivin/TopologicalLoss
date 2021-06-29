@@ -69,7 +69,7 @@ class Optimizer:
     if min_lr:
       lr_scheduler = tc.optim.lr_scheduler.ReduceLROnPlateau(optimizer,patience=100)
 
-    for t in range(iter):
+    for t in range(int(iter)):
 
       #discretization of the data at each iteration
       data_ = (data * 255)

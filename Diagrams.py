@@ -2,8 +2,8 @@
 import numpy as np
 import higra as hg
 import torch as tc
-from Attribute import attribute_depth, attribute_saddle_nodes
-import ComponentTree
+from LossTopo.Attribute import attribute_depth, attribute_saddle_nodes
+import LossTopo.ComponentTree
 
 
 
@@ -32,4 +32,9 @@ def GT2PersDiag(graph, image):
   death = altitudes[saddle_nodes[extrema_indices]]
 
   return tc.stack((birth, death), 1) 
+
+
+
+
+
 

@@ -3,11 +3,13 @@
 import argparse
 import TestData
 
+
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-graph', default=TestData.testdata["multi_max_noisy"][0], help='the graph associated to the input image')
     parser.add_argument('-image', default=TestData.testdata["multi_max_noisy"][1], help='the image to optimize')
-    parser.add_argument('-nb_iter', default=1000, help='number of loops in the Optimizer')
+    parser.add_argument('-nb_iter', default=10, help='number of loops in the Optimizer')
     parser.add_argument('-loss', default='minmax', choices=['min', 'max', 'minmax'])
     parser.add_argument('-nb_holes', default=2, type=int, 
                         help='number of holes to enforce in the image')
