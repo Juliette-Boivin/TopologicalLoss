@@ -3,6 +3,7 @@ import numpy as np
 import higra as hg
 import torch as tc
 import math
+import ot
 from LossTopo.Attribute import attribute_depth, attribute_saddle_nodes
 #from edist import ted
 from LossTopo.Diagrams import NbMaximas2PersDiag
@@ -65,10 +66,13 @@ def img2tree(grph, img, thresh, type):
 def tree2diag(tree, altitudes):
   
   altitudes_np = altitudes.detach().numpy()
-
+  
   extrema = hg.attribute_extrema(tree, altitudes_np)
+  #print('extrema: ' + str(extrema))
   extrema_indices = np.arange(tree.num_vertices())[extrema]
+  #print('extrema_indices: ' + str(extrema_indices))
   extrema_altitudes = altitudes[tc.from_numpy(extrema_indices).type(tc.LongTensor)]
+  #print('extrema_altitudes: ' + str(extrema_altitudes))
 
   depth = attribute_depth(tree, altitudes_np)
   saddle_nodes = tc.from_numpy(attribute_saddle_nodes(tree, depth)[0]).type(tc.LongTensor)
@@ -76,14 +80,14 @@ def tree2diag(tree, altitudes):
   # persistence diagram's points built on the maxtree's extremas
   birth = extrema_altitudes
   death = altitudes[saddle_nodes[extrema_indices]]
-
+  
   return birth, death
 
 
 
-def loss_Hu(graph, image, type, num_max=1, thresh=1e10-5, perfect_diagram='None', image_graph_GT='None', optimize_maxtree=False):
+def loss_Hu(graph, image, type, num_max=1, thresh=1e10-10, perfect_diagram='None', image_graph_GT='None', optimize_maxtree=False):
 
-  tree, altitudes = img2tree(graph, tc.tensor(image), thresh, type)
+  tree, altitudes = img2tree(graph, image, thresh, type)
   #hg.print_partition_tree(tree)
   
   if optimize_maxtree:
@@ -108,13 +112,20 @@ def loss_Hu(graph, image, type, num_max=1, thresh=1e10-5, perfect_diagram='None'
     birth, death = tree2diag(tree, altitudes)
     diag = tc.stack((birth, death), 1)
     lh_pers = birth - death
-
+    
     (graph_GT, image_GT) = image_graph_GT
+    #print('image_graph_GT[0]: ' + str(np.where(image_graph_GT[0] != 0)))
+    #print('image_graph_GT[1]: ' + str(np.where(image_graph_GT[1] != 0)))
     tree_GT, altitudes_GT = img2tree(image_graph_GT[0], image_graph_GT[1], thresh, type)
+    #print('alti: ' + str(len(np.where((altitudes_GT > 0) & (altitudes_GT < 1))[0])))
+    #print('tree_GT: ' + str(tree_GT))
+    #print('altitudes_GT: ' + str(altitudes_GT > 0))
     birth_GT, death_GT = tree2diag(tree_GT, altitudes_GT)
+    #print('birth_GT: ' + str(birth_GT))
+    #print('death_GT: ' + str(death_GT))
     diagram_GT = tc.stack((birth_GT, death_GT), 1)
 
-    cost, matchings = wasserstein.wasserstein_distance(diag.detach(), diagram_GT, matching=True, order=30, internal_p=2)
+    cost, matchings = wasserstein.wasserstein_distance(diag, diagram_GT, matching=True, order=30, internal_p=2)
     matchings = matchings[matchings[:, 1] != -1]
     idx_holes_to_fix_or_perfect = list(matchings[:, 0])
     loss = 0
@@ -129,6 +140,7 @@ def loss_Hu(graph, image, type, num_max=1, thresh=1e10-5, perfect_diagram='None'
       force_list[ind, 1] = -lh_pers[ind] / math.sqrt(2.0)
     for idx in idx_holes_to_remove:
       loss += force_list[idx, 0] ** 2 + force_list[idx, 1] ** 2
+    #print('loss: ' + str(loss))
       
     return loss, birth, death, idx_holes_to_fix_or_perfect
 
